@@ -34,11 +34,13 @@
 
 #define gpsServiceUUID "3076b0b4-6e45-4fec-98f6-b57848224a2e"
 #define gpsCharacteristicUUID "032ce508-80dc-4bbc-a3ba-f554591161a0"
+#define gpsDescriptorUUID "032ce509-80dc-4bbc-a3ba-f554591161a0"
 
 //packet counter
 int counter = 0;
-
 bool deviceConnected = false;
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RST);
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -51,8 +53,6 @@ class MyServerCallbacks: public BLEServerCallbacks {
 };
 
 BLECharacteristic *pCharacteristic;
-
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RST);
 
 String LoRaData;
 
@@ -111,15 +111,18 @@ void setup() {
   pCharacteristic = pGPS->createCharacteristic(
                                          gpsCharacteristicUUID,
                                          BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE);
+                                         BLECharacteristic::PROPERTY_WRITE |
+                                         BLECharacteristic::PROPERTY_NOTIFY);
+  pCharacteristic->setValue("Where's Posey?");
   pGPS->start();
-  pServer->getAdvertising()->addServiceUUID(gpsServiceUUID);
-
-  // Start the service
-  pGPS->start();
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(gpsServiceUUID);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
+  pAdvertising->setMinPreferred(0x12);
 
   // Start advertising
-  pServer->getAdvertising()->start();
+  BLEDevice::startAdvertising();
   Serial.println("Waiting a client connection to notify...");
 }
 
@@ -154,11 +157,26 @@ void loop() {
    display.setCursor(30,40);
    display.print(rssi);
    display.display();   
-
-   if (deviceConnected) {
-    int16_t value; 
-    pCharacteristic->setValue((uint8_t*)&value, 2);
-//    pCharacteristic.notify();
-   }
   }
+  if (deviceConnected) {
+    display.setCursor(0,20);
+    display.setTextColor(0xFFFF,0);
+    display.println("                             ");
+    display.display();
+    display.setTextColor(WHITE);
+    display.setCursor(0,20);
+    display.print("BLE CONNECTED");
+    display.display();
+    pCharacteristic->notify();
+  } else {
+    display.setCursor(0,20);
+    display.setTextColor(0xFFFF,0);
+    display.println("                               ");
+    display.display();
+    display.setTextColor(WHITE);
+    display.setCursor(0,20);
+    display.print("BLE DISCONNECTED");
+    display.display();
+  }
+  delay(1000);
 }
