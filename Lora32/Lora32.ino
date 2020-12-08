@@ -148,23 +148,27 @@ void loop() {
    display.clearDisplay();
    display.setCursor(0,0);
    display.print("LORA RECEIVER");
-   display.setCursor(0,20);
-   display.print("Received packet:");
    display.setCursor(0,30);
-   display.print(LoRaData);
+   display.print("Received packet:");
    display.setCursor(0,40);
+   display.print(LoRaData);
+   display.setCursor(0,50);
    display.print("RSSI:");
-   display.setCursor(30,40);
+   display.setCursor(30,50);
    display.print(rssi);
-   display.display();   
+   display.display();  
+   if (deviceConnected) {
+     pCharacteristic->setValue(LoRaData.toCharArray(),sizeof(LoRaData),0);
+     pCharacteristic->notify();
+   }
   }
   if (deviceConnected) {
-    display.setCursor(0,20);
+    display.setCursor(0,15);
     display.setTextColor(0xFFFF,0);
     display.println("                             ");
     display.display();
     display.setTextColor(WHITE);
-    display.setCursor(0,20);
+    display.setCursor(0,15);
     display.print("BLE CONNECTED");
     display.display();
     pCharacteristic->notify();
