@@ -158,7 +158,9 @@ void loop() {
    display.print(rssi);
    display.display();  
    if (deviceConnected) {
-     pCharacteristic->setValue(LoRaData.toCharArray(),sizeof(LoRaData),0);
+     uint8_t toSend[LoRaData.length()];
+     LoRaData.getBytes(toSend,sizeof(toSend));
+     pCharacteristic->setValue(toSend,sizeof(toSend));
      pCharacteristic->notify();
    }
   }
