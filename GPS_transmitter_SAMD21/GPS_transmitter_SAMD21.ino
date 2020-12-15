@@ -10,10 +10,10 @@
 //Radio Head Library:
 #include <RH_RF95.h> 
 //#include Serial1
-#include <TinyGPS.h> 
+#include <TinyGPS++.h>
 
-float lat = 28.5458,lon = 77.1703; // create variable for latitude and longitude object
-TinyGPS gps; // create gps object 
+float lat = 47.0,lon = -122.0; // create variable for latitude and longitude object
+TinyGPSPlus gps; // create gps object 
 
 // We need to provide the RFM95 module's chip select and interrupt pins to the
 // rf95 instance below.On the SparkFun ProRF those pins are 12 and 6 respectively.
@@ -64,27 +64,18 @@ void setup()
    // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then 
    // you can set transmitter powers from 5 to 23 dBm:
    // Transmitter power can range from 14-20dbm.
-   rf95.setTxPower(14, false);
+   rf95.setTxPower(20, false);
 }
 
 
 void loop()
 {
-  unsigned long hdop;
-  while(Serial1.available()){ // check for gps data 
-    if(gps.encode(Serial1.read()))// encode gps data 
-    {  
-      gps.f_get_position(&lat,&lon); // get latitude and longitude 
-      hdop = gps.hdop();
-    }
-  }
 
-  String latitude = String(lat,6); 
-  String longitude = String(lon,6); 
-  String satellite = String(hdop);
+  SerialUSB.println(gps.location.lat(), 5);
+  SerialUSB.println(gps.location.lat(), 4);
+  SerialUSB.println(gps.satellites.value());
+  String pos = String(gps.location.lat(),6)+":"+String(gps.location.lng(),6)+":"+String(gps.satellites.value());
 
-  //Send a message to the other radio
-  String pos = latitude+":"+longitude+":"+satellite;
   uint8_t toSend[pos.length()];
   pos.getBytes(toSend,sizeof(toSend));
   rf95.send(toSend, sizeof(toSend));
@@ -94,19 +85,21 @@ void loop()
   byte buf[RH_RF95_MAX_MESSAGE_LEN];
   byte len = sizeof(buf);
 
-  SerialUSB.println(pos);
+  SerialUSB.println((char*)toSend);
 
-  if (rf95.waitAvailableTimeout(2000)) {
-    // Should be a reply message for us now
-    if (rf95.recv(buf, &len)) {
-      SerialUSB.println((char*)buf);
-    }
-    else {
-      SerialUSB.println("Receive failed");
-    }
-  }
-  else {
-    SerialUSB.println("No reply, is the receiver running?");
-  }
-  delay(1000);
+  SerialUSB.println("*************");
+
+  smartDelay(1000);
+  if (millis() > 5000 && gps.charsProcessed() < 10)
+    Serial.println(F("No GPS data received: check wiring"));
+}
+
+static void smartDelay(unsigned long ms)
+{
+  unsigned long start = millis();
+  do
+  {
+    while (Serial1.available())
+      gps.encode(Serial1.read());
+  } while (millis() - start < ms);
 }
