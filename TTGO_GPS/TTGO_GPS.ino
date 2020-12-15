@@ -84,7 +84,10 @@ void loop()
 //  LoRa.print(counter);
   LoRa.endPacket();
 
+  //Blink to indicate it's working
+  axp.setChgLEDMode(AXP20X_LED_OFF);
   smartDelay(1000);
+  axp.setChgLEDMode(AXP20X_LED_LOW_LEVEL);
 
   if (millis() > 5000 && gps.charsProcessed() < 10)
     Serial.println(F("No GPS data received: check wiring"));

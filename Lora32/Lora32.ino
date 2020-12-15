@@ -131,18 +131,22 @@ void loop() {
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
     //received a packet
-    Serial.print("Received packet ");
+//    Serial.print(/"Received packet ");
+    counter++;
+    if (counter > 999) {
+      counter = 0;
+    }
 
     //read packet
     while (LoRa.available()) {
       LoRaData = LoRa.readString();
-      Serial.print(LoRaData);
+      //Serial.print(LoRaData);
     }
 
     //print RSSI of packet
     int rssi = LoRa.packetRssi();
-    Serial.print(" with RSSI ");    
-    Serial.println(rssi);
+//    Serial.print(" with RSSI ");    
+//    Serial.println(rssi);
 
    // Dsiplay information
    display.clearDisplay();
@@ -150,6 +154,7 @@ void loop() {
    display.print("LORA RECEIVER");
    display.setCursor(0,30);
    display.print("Received packet:");
+   display.print(counter);
    display.setCursor(0,40);
    display.print(LoRaData);
    display.setCursor(0,50);
@@ -162,27 +167,25 @@ void loop() {
      LoRaData.getBytes(toSend,sizeof(toSend));
      pCharacteristic->setValue(toSend,sizeof(toSend));
      pCharacteristic->notify();
+     display.setCursor(0,10);
+     display.setTextColor(0xFFFF,0);
+     display.println("                             ");
+     display.display();
+     display.setTextColor(WHITE);
+     display.setCursor(0,10);
+     display.print("BLE CONNECTED");
+     display.display();
+   } else {
+      BLEDevice::startAdvertising();
+     display.setCursor(0,10);
+     display.setTextColor(0xFFFF,0);
+     display.println("                               ");
+     display.display();
+     display.setTextColor(WHITE);
+     display.setCursor(0,10);
+     display.print("BLE DISCONNECTED");
+     display.display();
    }
   }
-  if (deviceConnected) {
-    display.setCursor(0,15);
-    display.setTextColor(0xFFFF,0);
-    display.println("                             ");
-    display.display();
-    display.setTextColor(WHITE);
-    display.setCursor(0,15);
-    display.print("BLE CONNECTED");
-    display.display();
-    pCharacteristic->notify();
-  } else {
-    display.setCursor(0,20);
-    display.setTextColor(0xFFFF,0);
-    display.println("                               ");
-    display.display();
-    display.setTextColor(WHITE);
-    display.setCursor(0,20);
-    display.print("BLE DISCONNECTED");
-    display.display();
-  }
-  delay(1000);
+//  delay/(1000);
 }
