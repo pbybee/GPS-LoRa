@@ -2,6 +2,8 @@
   Both the TX and RX ProRF boards will need a wire antenna. We recommend a 3" piece of wire.
   This example is a modified version of the example provided by the Radio Head
   Library which can be found here:
+
+  I removed the headers from the Radiohead LIbrary when It sends
   www.github.com/PaulStoffregen/RadioHeadd
 */
 
@@ -69,24 +71,19 @@ void setup()
 
 
 void loop()
-{
-
-  SerialUSB.println(gps.location.lat(), 5);
-  SerialUSB.println(gps.location.lat(), 4);
-  SerialUSB.println(gps.satellites.value());
-  String pos = String(gps.location.lat(),6)+":"+String(gps.location.lng(),6)+":"+String(gps.satellites.value());
-
+{ 
+  String latStr = String(gps.location.lat(),6);
+  String lngStr = String(gps.location.lat(),6);
+  String satStr = String(gps.satellites.value());
+  String pos = latStr+":"+lngStr+":";
+  SerialUSB.println(pos.length());
   uint8_t toSend[pos.length()];
   pos.getBytes(toSend,sizeof(toSend));
   rf95.send(toSend, sizeof(toSend));
   rf95.waitPacketSent();
 
-  // Now wait for a reply
-  byte buf[RH_RF95_MAX_MESSAGE_LEN];
-  byte len = sizeof(buf);
-
   SerialUSB.println((char*)toSend);
-
+  SerialUSB.println(sizeof(toSend));
   SerialUSB.println("*************");
 
   smartDelay(1000);

@@ -131,8 +131,6 @@ void loop() {
   int packetSize = LoRa.parsePacket();
   if (packetSize) {    
     LoRaData = "";
-    //received a packet
-//    Serial.print(/"Received packet ");
     counter++;
     if (counter > 999) {
       counter = 0;
@@ -140,9 +138,11 @@ void loop() {
 
     //read packet
     while (LoRa.available()) {
-      LoRaData += (char)LoRa.read();
+//      LoRaData += (char)LoRa.read();
+      LoRaData = LoRa.readString();
     }
-    Serial.println(LoRaData);
+//    Serial.println(packetSize);
+//    Serial.println(LoRaData);
 
     //print RSSI of packet
     int rssi = LoRa.packetRssi();
@@ -164,7 +164,7 @@ void loop() {
    display.print(rssi);
    display.display();  
    if (deviceConnected) {
-     uint8_t toSend[sizeof(LoRaData)];
+     uint8_t toSend[LoRaData.length()];
      LoRaData.getBytes(toSend,sizeof(toSend));
      pCharacteristic->setValue(toSend,sizeof(toSend));
      pCharacteristic->notify();
